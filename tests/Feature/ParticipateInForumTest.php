@@ -11,6 +11,15 @@ class ParticipateInForumTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $thread;
+
+    public function setUp() : void
+    {
+        parent::setUp();
+
+        $this->thread = create(Thread::class);
+    }
+
     /** @test */
     public function unauthenticated_users_may_not_add_replies()
     {
@@ -22,13 +31,23 @@ class ParticipateInForumTest extends TestCase
     /** @test */
     public function an_authenticated_user_may_partipate_in_forum_threads()
     {
-        $thread = create(Thread::class);
         $reply = make(Reply::class);
 
         $this->signIn()
-            ->post($thread->path().'/replies', $reply->toArray());
+            ->post($this->thread->path().'/replies', $reply->toArray());
         
-        $this->get($thread->path())
+        $this->get($this->thread->path())
             ->assertSee($reply->body);
+    }
+
+    /** @test */
+    public function a_reply_requires_a_body()
+    {
+        $reply = make(Reply::class, ['body' => null]);
+        
+        $this->withExceptionHandling()
+            ->signIn()
+            ->post($this->thread->path().'/replies', $reply->toArray())
+            ->assertSessionHasErrors('body');
     }
 }
