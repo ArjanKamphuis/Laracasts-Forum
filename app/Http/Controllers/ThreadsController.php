@@ -16,11 +16,12 @@ class ThreadsController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param \App\Models\Channel $channel
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Channel $channel)
     {
-        $threads = Thread::latest()->get();
+        $threads = ($channel->exists ? $channel->threads()->latest() : Thread::latest())->get();
         return view('threads.index', compact('threads'));
     }
 
